@@ -2,28 +2,47 @@
   <div class="scroll-wrapper" ref="wrapper">
     <div class="scroll-content-wrapper">
       <div class="scroll-content" :style="{height: height + 'px'}">
-        <div class="scroll-content-title">
-          <img class="title-img" src="@/assets/imgs/20180727155739608328.png" />
-        </div>
-        <div class="scroll-content-main">
-          <img class="main-img" src="@/assets/imgs/20180727155739463869.png" />
-
-        </div>
-        <div class="scroll-content-download">
+        <transition name="title-transition"
+        enter-active-class="animated fadeIn">
+          <div class="scroll-content-title" v-show="0 === scrollPage">
+            <img class="title-img" src="@/assets/imgs/20180727155739608328.png" />
+          </div>
+        </transition>
+        <transition name="main-transition"
+        enter-active-class="animated fadeInUp">
+          <div class="scroll-content-main" v-show="0 === scrollPage">
+            <img class="main-img" src="@/assets/imgs/20180727155739463869.png" />
+          </div>
+        </transition>
+        <div class="scroll-content-download" v-show="0 === scrollPage">
           <img class="download-img" src="@/assets/imgs/20180730111821714474.png" />
         </div>
         <div class="next-icon"></div>
       </div>
-      <div class="scroll-content" :style="{height: height + 'px'}"
-      v-for="(item, index) in imgList" :key="index">
-        <div class="scroll-content-title" :style="item.width">
-          <img class="title-img" :src="item.titleImg"/>
-        </div>
-        <div class="scroll-content-main">
-          <img class="main-img" :src="item.mainImg" />
-        </div>
+      <div
+        class="scroll-content"
+        :style="{height: height + 'px'}"
+        v-for="(item, index) in imgList"
+        :key="index"
+      >
+        <transition name="title-transition"
+        enter-active-class="animated fadeIn">
+          <div class="scroll-content-title" :style="item.width" v-show="item.page === scrollPage">
+            <img class="title-img" :src="item.titleImg" />
+          </div>
+        </transition>
+        <transition name="main-transition"
+        enter-active-class="animated fadeInUp">
+          <div class="scroll-content-main" v-show="item.page === scrollPage">
+            <img class="main-img" :src="item.mainImg" />
+          </div>
+        </transition>
         <div class="scroll-content-download">
-          <img class="download-img" src="@/assets/imgs/20180730111821714474.png" style="visibility: hidden"/>
+          <img
+            class="download-img"
+            src="@/assets/imgs/20180730111821714474.png"
+            style="visibility: hidden"
+          />
         </div>
         <div class="next-icon"></div>
       </div>
@@ -33,11 +52,18 @@
 
 <script>
 import BScroll from 'better-scroll'
+
 export default {
   data () {
     return {
       height: 0,
-      width: 0
+      width: 0,
+      scrollHeight: 0
+    }
+  },
+  computed: {
+    scrollPage () {
+      return this.scrollHeight / this.height
     }
   },
   props: {
@@ -45,31 +71,40 @@ export default {
   },
   components: {},
   mounted () {
+    this.height = window.innerHeight
+    this.width = window.innerWidth
     this.$nextTick(() => {
       const options = {
         scrollY: true,
         momentum: false, // 防止连续滑动多个页面
-        snap: true
+        snap: true,
+        probeType: 3, // 不设置无法监听scroll事件
+        bounce: false // 禁止动画回弹
       }
-      this.scroll = new BScroll(this.$refs.wrapper, options)
+      if (!this.scroll) {
+        this.scroll = new BScroll(this.$refs.wrapper, options)
+      } else {
+        this.scroll.refresh()
+      }
+      this.scroll.on('scrollEnd', pos => {
+        console.log(parseFloat(-pos.y))
+        this.scrollHeight = parseFloat(-pos.y)
+      })
     })
-    this.height = window.innerHeight
-    this.width = window.innerWidth
   }
 }
 </script>
 
 <style lang="scss" scoped>
 @import "../../assets/style/global";
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .5s;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
 }
-@media only screen
-and (min-device-width : 768px)
-and (max-device-width : 1024px){
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
   .scroll-content {
     width: 578px !important;
     margin: 0 auto;
