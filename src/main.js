@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import App from './App.vue'
-import Swiper from 'vue-awesome-swiper'
+import '../src/assets/style/reset.scss'
+import '../src/assets/style/global.scss'
 
 Vue.config.productionTip = false
-Vue.use(Swiper)
 
 new Vue({
   render: h => h(App)
